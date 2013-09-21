@@ -1,0 +1,5 @@
+function double(x) {
+    x + x
+}
+
+output(double(input()))

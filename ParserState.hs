@@ -63,9 +63,10 @@ newFunc name = do
       fail $ "function " ++ name ++ " redefined"
     else do
       newLabel <- nextLabel
+      oldState' <- get
       let
         newTable = M.insert name newLabel oldTable
-        newState = oldState {parserFuncTable = newTable}
+        newState = oldState' {parserFuncTable = newTable}
 
       put newState
       return newLabel

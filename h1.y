@@ -8,6 +8,7 @@ import Control.Monad.State
 
 import Lexer
 import ParserState
+import Template
 
 }
 
@@ -35,12 +36,16 @@ import ParserState
 
 %%
 
+program :: { [Char] }
+  : code
+    {%
+      return $ programTmpl $1
+    }
+
 code :: { [Char] }
   : expr
     {%
-      return $
-        "_start:\n" ++
-        $1
+      return $ mainTmpl $1
     }
   | func code
     {%
@@ -53,20 +58,21 @@ func :: { [Char] }
   : 'function' I_IDENTITY '(' I_IDENTITY ')' '{' expr '}'
     {% do
       funcLabel <- newFunc $2
-      localVar $ do
-        newVar $4
-        return $
-          funcLabel ++ ":\n" ++
-          $7 ++
-          "popq %rax\n"
+      return $
+        funcLabel ++ ":\n" ++
+        "pushq %rbp\n" ++
+        "movq %rsp, %rbp\n" ++
+        $7 ++
+        "popq %rax\n" ++
+        "popq %rbp\n" ++
+        "ret\n"
     }
 
 expr :: { [Char] }
   : I_IDENTITY
     {% do
-      varOffset <- lookupVar $1
       return $
-        "movq " ++ show varOffset ++ "(%rbp), %rax\n" ++
+        "movq 16(%rbp), %rax\n" ++
         "pushq %rax\n"
     }
   | I_NUMBER
@@ -139,11 +145,9 @@ expr :: { [Char] }
 {
 
 parseError :: Monad m => [Token] -> ParserT m a
-parseError = fail "parseError"
+parseError tks = fail $ "parseError: " ++ show tks
 
 main = do
-  putStrLn "Hi"
-
   source <- getContents
   result <- evalStateT (cheapParse (lexer source)) initParserState
   putStr result

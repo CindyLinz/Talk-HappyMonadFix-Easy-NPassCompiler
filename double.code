@@ -2,4 +2,4 @@ function double(x) {
     x + x
 }
 
-output(double(input()))
+output(double(input(0)))

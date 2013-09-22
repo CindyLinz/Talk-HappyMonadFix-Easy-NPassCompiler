@@ -27,7 +27,7 @@ type Parser a = ParserT IO a
 
 initParserState = ParserState
   { parserVarTable = M.empty
-  , parserFuncTable = M.empty
+  , parserFuncTable = M.fromList [("input", "read"), ("output", "write")]
   , parserLabelCursor = 0
   , parserOffsetCursor = 0
   }

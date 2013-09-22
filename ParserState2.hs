@@ -1,4 +1,4 @@
-module ParserState
+module ParserState2
   ( Parser
   , ParserT
   , ParserState (..)
@@ -20,6 +20,7 @@ type FuncTable = M.Map [Char] [Char]
 data ParserState = ParserState
   { parserVarTable :: M.Map [Char] Int
   , parserFuncTable :: FuncTable
+  , parserFinalFuncTable :: FuncTable
   , parserLabelCursor :: Int
   , parserOffsetCursor :: Int
   }
@@ -27,9 +28,10 @@ data ParserState = ParserState
 type ParserT m a = StateT ParserState m a
 type Parser a = ParserT IO a
 
-initParserState = ParserState
+initParserState finalFuncTable = ParserState
   { parserVarTable = M.empty
   , parserFuncTable = M.fromList [("input", "read"), ("output", "write")]
+  , parserFinalFuncTable = finalFuncTable
   , parserLabelCursor = 0
   , parserOffsetCursor = 0
   }
@@ -76,9 +78,9 @@ newFunc name = do
 lookupFunc :: Monad m => [Char] -> ParserT m [Char]
 lookupFunc name = do
   state <- get
-  case M.lookup name (parserFuncTable state) of
-    Just label -> return label
-    Nothing -> fail $ "Unknown function " ++ name
+  return $ case M.lookup name (parserFinalFuncTable state) of
+      Just label -> label
+      Nothing -> "UnknownFunc" ++ name
 
 localVar :: Monad m => ParserT m a -> ParserT m a
 localVar m = do

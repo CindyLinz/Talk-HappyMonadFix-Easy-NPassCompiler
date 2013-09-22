@@ -14,4 +14,4 @@ function fibb(n) {
     }
 }
 
-output(fiba(input()))
+output(fiba(input(0)))

@@ -1,6 +1,8 @@
 module ParserState
   ( Parser
   , ParserT
+  , ParserState
+  , initParserState
   , nextLabel
   , newFunc
   , lookupFunc
@@ -22,6 +24,13 @@ data ParserState = ParserState
 
 type ParserT m a = StateT ParserState m a
 type Parser a = ParserT IO a
+
+initParserState = ParserState
+  { parserVarTable = M.empty
+  , parserFuncTable = M.empty
+  , parserLabelCursor = 0
+  , parserOffsetCursor = 0
+  }
 
 nextLabel :: Monad m => ParserT m [Char]
 nextLabel = do

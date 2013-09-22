@@ -4,7 +4,7 @@ module Main where
 
 -- vim: filetype=haskell
 
-import System.Environment
+import Control.Monad.State
 
 import Lexer
 import ParserState
@@ -144,8 +144,8 @@ parseError = fail "parseError"
 main = do
   putStrLn "Hi"
 
-  --args <- getArgs
-  --forM_ args $ \arg -> do
-    --cheapParse 
+  source <- getContents
+  result <- evalStateT (cheapParse (lexer source)) initParserState
+  putStr result
 
 }

@@ -4,13 +4,14 @@ module Main where
 
 -- vim: filetype=haskell
 
-import Data.Char
-import qualified Data.Map as M
-import Control.Monad.State
+import System.Environment
+
+import Lexer
+import ParserState
 
 }
 
-%name parser
+%name cheapParse
 %tokentype { Token }
 %monad { Parser }
 %error { parseError }
@@ -137,145 +138,14 @@ expr :: { [Char] }
 
 {
 
-data Token
-  = TokenFunction
-  | TokenParL
-  | TokenParR
-  | TokenCurL
-  | TokenCurR
-  | TokenPlus
-  | TokenMinus
-  | TokenLessEqual
-  | TokenIf
-  | TokenElse
-  | TokenNum Int
-  | TokenIdentity [Char]
-  deriving Show
-
-lexer :: [Char] -> [Token]
-lexer [] = []
-lexer ('+':cs) = TokenPlus : lexer cs
-lexer ('-':cs) = TokenMinus : lexer cs
-lexer ('(':cs) = TokenParL : lexer cs
-lexer (')':cs) = TokenParR : lexer cs
-lexer ('{':cs) = TokenCurL : lexer cs
-lexer ('}':cs) = TokenCurR : lexer cs
-lexer ('<':'=':cs) = TokenLessEqual : lexer cs
-lexer (c:cs)
-  | isSpace c = lexer cs
-  | isAlpha c = lexIdentity (c:cs)
-  | isDigit c = lexDigit (c:cs)
-
-lexIdentity cs =
-  case span isAlpha cs of
-    ("function", cs') -> TokenFunction : lexer cs'
-    ("if", cs') -> TokenIf : lexer cs'
-    ("else", cs') -> TokenElse : lexer cs'
-    (id, cs') -> TokenIdentity id : lexer cs'
-
-lexDigit cs = TokenNum (read num) : lexer cs'
-  where (num, cs') = span isDigit cs
-
-data ParserState = ParserState
-  { parserVarTable :: M.Map [Char] Int
-  , parserFuncTable :: M.Map [Char] [Char]
-  , parserLabelCursor :: Int
-  , parserOffsetCursor :: Int
-  }
-
-type ParserT m a = StateT ParserState m a
-type Parser a = ParserT IO a
-
-nextLabel :: Monad m => ParserT m [Char]
-nextLabel = do
-  oldState <- get
-  let
-    oldLabel = parserLabelCursor oldState
-    newLabel = oldLabel + 1
-    newState = oldState { parserLabelCursor = newLabel }
-  put newState
-  return $ "label_" ++ show newLabel
-
-nextOffset :: Monad m => ParserT m Int
-nextOffset = do
-  oldState <- get
-  let
-    oldOffset = parserOffsetCursor oldState
-    newOffset = oldOffset + 8
-    newState = oldState { parserOffsetCursor = newOffset }
-  put newState
-  return newOffset
-
-newFunc :: Monad m => [Char] -> ParserT m [Char]
-newFunc name = do
-  oldState <- get
-  let
-    oldTable = parserFuncTable oldState
-
-  if M.member name oldTable
-    then
-      fail $ "function " ++ name ++ " redefined"
-    else do
-      newLabel <- nextLabel
-      let
-        newTable = M.insert name newLabel oldTable
-        newState = oldState {parserFuncTable = newTable}
-
-      put newState
-      return newLabel
-
-lookupFunc :: Monad m => [Char] -> ParserT m [Char]
-lookupFunc name = do
-  state <- get
-  case M.lookup name (parserFuncTable state) of
-    Just label -> return label
-    Nothing -> fail $ "Unknown function " ++ name
-
-localVar :: Monad m => ParserT m a -> ParserT m a
-localVar m = do
-  oldState <- get
-  put $ oldState {parserVarTable = M.empty}
-
-  res <- m
-
-  newState <- get
-  put $ newState {parserVarTable = parserVarTable oldState, parserOffsetCursor = 0}
-
-  return res
-
-newVar :: Monad m => [Char] -> ParserT m Int
-newVar name = do
-  oldState <- get
-  let
-    oldTable = parserVarTable oldState
-
-  if M.member name oldTable
-    then
-      fail $ "variable " ++ name ++ " redefined"
-    else do
-      newOffset <- nextOffset
-      let
-        newTable = M.insert name newOffset oldTable
-        newState = oldState {parserVarTable = newTable}
-
-      put newState
-      return newOffset
-
-lookupVar :: Monad m => [Char] -> ParserT m Int
-lookupVar name = do
-  state <- get
-  case M.lookup name (parserVarTable state) of
-    Just offset -> return offset
-    Nothing -> fail $ "Unknown variable " ++ name
-
-code :: MonadIO m => [Char] -> ParserT m ()
-code str = liftIO (putStr str)
-
 parseError :: Monad m => [Token] -> ParserT m a
 parseError = fail "parseError"
 
-
 main = do
   putStrLn "Hi"
+
+  --args <- getArgs
+  --forM_ args $ \arg -> do
+    --cheapParse 
 
 }

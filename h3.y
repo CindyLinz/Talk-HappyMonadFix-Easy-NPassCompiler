@@ -160,10 +160,8 @@ parseError tks = fail $ "parseError: " ++ show tks
 main = do
   source <- getContents
   (result, _) <- mfix $ \ ~(_, finalFuncTable) -> do
-    --(result, parserState) <- runStateT (cheapParse (lexer source)) (initParserState M.empty)
     (result, parserState) <- runStateT (cheapParse (lexer source)) (initParserState finalFuncTable)
     return (result, parserFuncTable parserState)
-    --return (result, M.empty)
   putStr result
 
 }

@@ -1,5 +1,5 @@
-function double(x) {
-    x + x
+function double {
+    arg + arg
 }
 
 output(double(input(0)))

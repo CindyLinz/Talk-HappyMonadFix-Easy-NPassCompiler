@@ -1,16 +1,16 @@
-function fiba(n) {
-    if( n <= 1 ) {
+function fiba {
+    if( arg <= 1 ) {
         1
     } else {
-        fibb(n-1) + fibb(n-2)
+        fibb(arg-1) + fibb(arg-2)
     }
 }
 
-function fibb(n) {
-    if( n <= 1 ) {
+function fibb {
+    if( arg <= 1 ) {
         3
     } else {
-        fiba(n-1) + fiba(n-2)
+        fiba(arg-1) + fiba(arg-2)
     }
 }
 

@@ -30,6 +30,7 @@ import Template
   '<=' { TokenLessEqual }
   'if' { TokenIf }
   'else' { TokenElse }
+  'arg' { TokenArg }
 
 %left '<='
 %left '+' '-'
@@ -63,21 +64,21 @@ insertFunc
     }
 
 func :: { [Char] }
-  : 'function' insertFunc '(' I_IDENTITY ')' '{' expr '}'
+  : 'function' insertFunc '{' expr '}'
     {% do
       let (funcName, funcLabel) = $2
       return $
         funcLabel ++ ": # Function " ++ funcName ++ "\n" ++
         "pushq %rbp\n" ++
         "movq %rsp, %rbp\n" ++
-        $7 ++
+        $4 ++
         "popq %rax\n" ++
         "popq %rbp\n" ++
         "ret\n"
     }
 
 expr :: { [Char] }
-  : I_IDENTITY
+  : 'arg'
     {% do
       return $
         "movq 16(%rbp), %rax\n" ++

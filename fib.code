@@ -1,8 +1,8 @@
-function fib(n) {
-    if( n <= 1 ) {
+function fib {
+    if( arg <= 1 ) {
         1
     } else {
-        fib(n-1) + fib(n-2)
+        fib(arg-1) + fib(arg-2)
     }
 }
 

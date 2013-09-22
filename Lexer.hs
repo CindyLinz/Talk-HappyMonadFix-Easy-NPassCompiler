@@ -18,6 +18,7 @@ data Token
   | TokenElse
   | TokenNum Int
   | TokenIdentity [Char]
+  | TokenArg
   deriving Show
 
 lexer :: [Char] -> [Token]
@@ -39,6 +40,7 @@ lexIdentity cs =
     ("function", cs') -> TokenFunction : lexer cs'
     ("if", cs') -> TokenIf : lexer cs'
     ("else", cs') -> TokenElse : lexer cs'
+    ("arg", cs') -> TokenArg : lexer cs'
     (id, cs') -> TokenIdentity id : lexer cs'
 
 lexDigit cs = TokenNum (read num) : lexer cs'

@@ -118,7 +118,7 @@ expr :: { [Char] }
         $3 ++
         "popq %rbx\n" ++
         "popq %rax\n" ++
-        "cmpq $rbx, $rax\n" ++
+        "cmpq %rbx, %rax\n" ++
         "jbe " ++ trueLabel ++ "\n" ++
         "pushq $0\n" ++
         "jmp " ++ endLabel ++ "\n" ++

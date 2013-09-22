@@ -6,4 +6,4 @@ function fib(n) {
     }
 }
 
-output(fib(input()))
+output(fib(input(0)))

@@ -6,7 +6,6 @@ module Main where
 
 import Control.Monad.State
 import Control.Monad.Fix
-import qualified Data.Map as M
 
 import Lexer
 import ParserState2

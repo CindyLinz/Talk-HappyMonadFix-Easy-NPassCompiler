@@ -1,17 +1,17 @@
-function fib1(n) {
+function fiba(n) {
     if( n <= 1 ) {
         1
     } else {
-        fib2(n-1) + fib2(n-2)
+        fibb(n-1) + fibb(n-2)
     }
 }
 
-function fib2(n) {
+function fibb(n) {
     if( n <= 1 ) {
         3
     } else {
-        fib1(n-1) + fib1(n-2)
+        fiba(n-1) + fiba(n-2)
     }
 }
 
-output(fib1(input()))
+output(fiba(input()))

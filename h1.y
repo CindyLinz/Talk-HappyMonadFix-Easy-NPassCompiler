@@ -60,7 +60,7 @@ func :: { [Char] }
     {% do
       funcLabel <- newFunc $2
       return $
-        funcLabel ++ ": # Function " ++ $2 ++ "\n" ++
+        funcLabel ++ ":\n" ++
         "pushq %rbp\n" ++
         "movq %rsp, %rbp\n" ++
         $4 ++
@@ -71,7 +71,7 @@ func :: { [Char] }
 
 expr :: { [Char] }
   : 'arg'
-    {% do
+    {%
       return $
         "movq 16(%rbp), %rax\n" ++
         "pushq %rax\n"

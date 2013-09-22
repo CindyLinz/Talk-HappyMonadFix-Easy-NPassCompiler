@@ -55,20 +55,19 @@ code :: { [Char] }
         $2
     }
 
-insertFunc :: { ([Char], [Char]) }
+insertFunc :: { [Char] }
 insertFunc
   : I_IDENTITY
-    {% do
-      funcLabel <- newFunc $1
-      return ($1, funcLabel)
+    {%
+      newFunc $1
     }
 
 func :: { [Char] }
   : 'function' insertFunc '{' expr '}'
     {% do
-      let (funcName, funcLabel) = $2
+      let funcLabel = $2
       return $
-        funcLabel ++ ": # Function " ++ funcName ++ "\n" ++
+        funcLabel ++ ":\n" ++
         "pushq %rbp\n" ++
         "movq %rsp, %rbp\n" ++
         $4 ++
@@ -79,7 +78,7 @@ func :: { [Char] }
 
 expr :: { [Char] }
   : 'arg'
-    {% do
+    {%
       return $
         "movq 16(%rbp), %rax\n" ++
         "pushq %rax\n"

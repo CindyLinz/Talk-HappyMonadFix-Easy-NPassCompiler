@@ -90,10 +90,10 @@ expr :: { [Char] }
     }
   | I_IDENTITY '(' expr ')'
     {% do
-      funcName <- lookupFunc $1
+      funcLabel <- lookupFunc $1
       return $
         $3 ++
-        "call " ++ funcName ++ "\n" ++
+        "call " ++ funcLabel ++ "\n" ++
         "popq %rbx\n" ++
         "pushq %rax\n"
     }

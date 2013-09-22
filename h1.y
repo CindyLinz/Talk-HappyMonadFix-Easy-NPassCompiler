@@ -34,97 +34,105 @@ import Control.Monad.State
 
 %%
 
-code :: { () }
+code :: { [Char] }
   : expr
-    {% do
-      code "_start:\n"
-      -- $1
-      return ()
+    {%
+      return $
+        "_start:\n" ++
+        $1
     }
   | func code
-    {% do
-      -- $1
-      -- $2
-      return ()
+    {%
+      return $
+        $1 ++
+        $2
     }
 
-func :: { () }
+func :: { [Char] }
   : 'function' I_IDENTITY '(' I_IDENTITY ')' '{' expr '}'
     {% do
       funcLabel <- newFunc $2
-      code funcLabel; code ":\n"
       localVar $ do
         newVar $4
-        -- $7
-        code "popq %rax\n"
+        return $
+          funcLabel ++ ":\n" ++
+          $7 ++
+          "popq %rax\n"
     }
 
-expr :: { () }
+expr :: { [Char] }
   : I_IDENTITY
     {% do
       varOffset <- lookupVar $1
-      code "movq "; code (show varOffset); code "(%rbp), %rax\n"
-      code "pushq %rax\n"
+      return $
+        "movq " ++ show varOffset ++ "(%rbp), %rax\n" ++
+        "pushq %rax\n"
     }
   | I_NUMBER
-    {% do
-      code "pushq $"; code (show $1); code "\n"
+    {%
+      return $
+        "pushq $" ++ show $1 ++ "\n"
     }
   | I_IDENTITY '(' expr ')'
     {% do
       funcName <- lookupFunc $1
-      -- $3
-      code "call "; code funcName; code "\n"
-      code "popq %rbx\n"
-      code "pushq %rax\n"
+      return $
+        $3 ++
+        "call " ++ funcName ++ "\n" ++
+        "popq %rbx\n" ++
+        "pushq %rax\n"
     }
   | expr '+' expr
-    {% do
-      -- $1
-      -- $3
-      code "popq %rbx\n"
-      code "popq %rax\n"
-      code "addq %rbx, %rax\n"
-      code "pushq %rax\n"
+    {%
+      return $
+        $1 ++
+        $3 ++
+        "popq %rbx\n" ++
+        "popq %rax\n" ++
+        "addq %rbx, %rax\n" ++
+        "pushq %rax\n"
     }
   | expr '-' expr
-    {% do
-      -- $1
-      -- $3
-      code "popq %rbx\n"
-      code "popq %rax\n"
-      code "subq %rbx, %rax\n"
-      code "pushq %rax\n"
+    {%
+      return $
+        $1 ++
+        $3 ++
+        "popq %rbx\n" ++
+        "popq %rax\n" ++
+        "subq %rbx, %rax\n" ++
+        "pushq %rax\n"
     }
   | expr '<=' expr
     {% do
-      -- $1
-      -- $3
       trueLabel <- nextLabel
       endLabel <- nextLabel
-      code "popq %rbx\n"
-      code "popq %rax\n"
-      code "cmpq $rbx, $rax\n"
-      code "jbe "; code trueLabel; code "\n"
-      code "pushq $0\n"
-      code "jmp "; code endLabel; code "\n"
-      code trueLabel; code ":\n"
-      code "pushq $1\n"
-      code endLabel; code ":\n"
+      return $
+        $1 ++
+        $3 ++
+        "popq %rbx\n" ++
+        "popq %rax\n" ++
+        "cmpq $rbx, $rax\n" ++
+        "jbe " ++ trueLabel ++ "\n" ++
+        "pushq $0\n" ++
+        "jmp " ++ endLabel ++ "\n" ++
+        trueLabel ++ ":\n" ++
+        "pushq $1\n" ++
+        endLabel ++ ":\n"
     }
   | 'if' '(' expr ')' '{' expr '}' 'else' '{' expr '}'
     {% do
       elseLabel <- nextLabel
       endLabel <- nextLabel
-      -- $3
-      code "popq %rax\n"
-      code "cmpq $0, %rax\n"
-      code "jz "; code elseLabel; code "\n"
-      -- $6
-      code "jmp "; code endLabel; code "\n"
-      code elseLabel; code ":\n"
-      -- $10
-      code endLabel; code ":\n"
+      return $
+        $3 ++
+        "popq %rax\n" ++
+        "cmpq $0, %rax\n" ++
+        "jz " ++ elseLabel ++ "\n" ++
+        $6 ++
+        "jmp " ++ endLabel ++ "\n" ++
+        elseLabel ++ ":\n" ++
+        $10 ++
+        endLabel ++ ":\n"
     }
 
 {

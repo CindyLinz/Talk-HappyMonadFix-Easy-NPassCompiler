@@ -39,20 +39,16 @@ import Template
 
 program :: { [Char] }
   : code
-    {%
-      return $ programTmpl $1
+    { programTmpl $1
     }
 
 code :: { [Char] }
   : expr
-    {%
-      return $ mainTmpl $1
+    { mainTmpl $1
     }
   | func code
-    {%
-      return $
-        $1 ++
-        $2
+    { $1 ++
+      $2
     }
 
 insertFunc :: { [Char] }
@@ -64,9 +60,9 @@ insertFunc
 
 func :: { [Char] }
   : 'function' insertFunc '{' expr '}'
-    {% do
-      let funcLabel = $2
-      return $
+    { let
+        funcLabel = $2
+      in
         funcLabel ++ ":\n" ++
         "pushq %rbp\n" ++
         "movq %rsp, %rbp\n" ++
@@ -78,15 +74,11 @@ func :: { [Char] }
 
 expr :: { [Char] }
   : 'arg'
-    {%
-      return $
-        "movq 16(%rbp), %rax\n" ++
-        "pushq %rax\n"
+    { "movq 16(%rbp), %rax\n" ++
+      "pushq %rax\n"
     }
   | I_NUMBER
-    {%
-      return $
-        "pushq $" ++ show $1 ++ "\n"
+    { "pushq $" ++ show $1 ++ "\n"
     }
   | I_IDENTITY '(' expr ')'
     {% do
@@ -98,24 +90,20 @@ expr :: { [Char] }
         "pushq %rax\n"
     }
   | expr '+' expr
-    {%
-      return $
-        $1 ++
-        $3 ++
-        "popq %rbx\n" ++
-        "popq %rax\n" ++
-        "addq %rbx, %rax\n" ++
-        "pushq %rax\n"
+    { $1 ++
+      $3 ++
+      "popq %rbx\n" ++
+      "popq %rax\n" ++
+      "addq %rbx, %rax\n" ++
+      "pushq %rax\n"
     }
   | expr '-' expr
-    {%
-      return $
-        $1 ++
-        $3 ++
-        "popq %rbx\n" ++
-        "popq %rax\n" ++
-        "subq %rbx, %rax\n" ++
-        "pushq %rax\n"
+    { $1 ++
+      $3 ++
+      "popq %rbx\n" ++
+      "popq %rax\n" ++
+      "subq %rbx, %rax\n" ++
+      "pushq %rax\n"
     }
   | expr '<=' expr
     {% do

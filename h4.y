@@ -1,11 +1,11 @@
 {
 
-module Main where
-
+{-# LANGUAGE DoRec #-}
 -- vim: filetype=haskell
 
+module Main where
+
 import Control.Monad.State
-import Control.Monad.Fix
 
 import Lexer
 import ParserState3
@@ -156,9 +156,7 @@ parseError tks = error $ "parseError: " ++ show tks
 
 main = do
   source <- getContents
-  (result, _) <- mfix $ \ ~(_, finalFuncTable) -> do
-    (result, parserState) <- runStateT (cheapParse (lexer source)) (initParserState finalFuncTable)
-    return (result, parserFuncTable parserState)
+  rec (result, parserState) <- runStateT (cheapParse (lexer source)) (initParserState (parserFuncTable parserState))
   putStr result
 
 }

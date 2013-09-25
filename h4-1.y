@@ -37,63 +37,63 @@ import Template
 
 %%
 
-program :: { Parser [Char] }
+program :: { Parser () }
   : code
-    { $1 >>= return . programTmpl
+    { do
+      liftIO $ putStr programTmplPrefix
+      $1
+      liftIO $ putStr programTmplPostfix
     }
 
-code :: { Parser [Char] }
+code :: { Parser () }
   : expr
-    { $1 >>= return . mainTmpl
+    { do
+      liftIO $ putStr mainTmplPrefix
+      $1
+      liftIO $ putStr mainTmplPostfix
     }
   | func code
-    { do
-      func <- $1
-      code <- $2
-      return $ func ++ code
+    { $1 >> $2
     }
 
-func :: { Parser [Char] }
+func :: { Parser () }
   : 'function' I_IDENTITY '{' expr '}'
     { do
       funcLabel <- newFunc $2
-      body <- $4
-      return $
+      liftIO $ putStr $
         funcLabel ++ ":\n" ++
         "pushq %rbp\n" ++
-        "movq %rsp, %rbp\n" ++
-        body ++
+        "movq %rsp, %rbp\n"
+      $4
+      liftIO $ putStr $
         "popq %rax\n" ++
         "popq %rbp\n" ++
         "ret\n"
     }
 
-expr :: { Parser [Char] }
+expr :: { Parser () }
   : 'arg'
-    { return $
+    { liftIO $ putStr $
         "movq 16(%rbp), %rax\n" ++
         "pushq %rax\n"
     }
   | I_NUMBER
-    { return $ "pushq $" ++ show $1 ++ "\n"
+    { liftIO $ putStr $ "pushq $" ++ show $1 ++ "\n"
     }
   | I_IDENTITY '(' expr ')'
     { do
       funcLabel <- lookupFunc $1
-      arg <- $3
-      return $
-        arg ++
+      $3
+      liftIO $ putStr $
         "call " ++ funcLabel ++ "\n" ++
         "popq %rbx\n" ++
         "pushq %rax\n"
     }
   | expr '+' expr
     { do
-      arg1 <- $1
-      arg2 <- $3
-      return $
-        arg1 ++
-        arg2 ++
+      $1
+      $3
+      liftIO $ putStr $
         "popq %rbx\n" ++
         "popq %rax\n" ++
         "addq %rbx, %rax\n" ++
@@ -101,11 +101,9 @@ expr :: { Parser [Char] }
     }
   | expr '-' expr
     { do
-      arg1 <- $1
-      arg2 <- $3
-      return $
-        arg1 ++
-        arg2 ++
+      $1
+      $3
+      liftIO $ putStr $
         "popq %rbx\n" ++
         "popq %rax\n" ++
         "subq %rbx, %rax\n" ++
@@ -113,13 +111,11 @@ expr :: { Parser [Char] }
     }
   | expr '<=' expr
     { do
+      $1
+      $3
       trueLabel <- nextLabel
       endLabel <- nextLabel
-      arg1 <- $1
-      arg2 <- $3
-      return $
-        arg1 ++
-        arg2 ++
+      liftIO $ putStr $
         "popq %rbx\n" ++
         "popq %rax\n" ++
         "cmpq %rbx, %rax\n" ++
@@ -134,18 +130,17 @@ expr :: { Parser [Char] }
     { do
       elseLabel <- nextLabel
       endLabel <- nextLabel
-      cond <- $3
-      positive <- $6
-      negative <- $10
-      return $
-        cond ++
+      $3
+      liftIO $ putStr $
         "popq %rax\n" ++
         "cmpq $0, %rax\n" ++
-        "jz " ++ elseLabel ++ "\n" ++
-        positive ++
+        "jz " ++ elseLabel ++ "\n"
+      $6
+      liftIO $ putStr $
         "jmp " ++ endLabel ++ "\n" ++
-        elseLabel ++ ":\n" ++
-        negative ++
+        elseLabel ++ ":\n"
+      $10
+      liftIO $ putStr $
         endLabel ++ ":\n"
     }
 
@@ -156,7 +151,6 @@ parseError tks = error $ "parseError: " ++ show tks
 
 main = do
   source <- getContents
-  rec (result, parserState) <- runStateT (cheapParse (lexer source)) (initParserState (parserFuncTable parserState))
-  putStr result
-
+  rec parserState <- execStateT (cheapParse (lexer source)) (initParserState (parserFuncTable parserState))
+  return ()
 }

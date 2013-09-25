@@ -1,15 +1,20 @@
 module Template
   ( programTmpl
   , mainTmpl
+  , programTmplPrefix
+  , programTmplPostfix
+  , mainTmplPrefix
+  , mainTmplPostfix
   ) where
 
-programTmpl body =
+programTmplPrefix =
   ".section .data\n" ++
   "digit:\n" ++
   "    .ascii \"..........\\n\"\n" ++
   ".section .text\n" ++
-  ".global _start\n" ++
-  body ++
+  ".global _start\n"
+
+programTmplPostfix =
   "read:\n" ++
   "    pushq %rbx\n" ++
   "    pushq %rcx\n" ++
@@ -90,10 +95,17 @@ programTmpl body =
   "    popq %rbp\n" ++
   "    ret\n"
 
-mainTmpl body =
-  "_start:\n" ++
-  body ++
+programTmpl body =
+  programTmplPrefix ++ body ++ programTmplPostfix
+
+mainTmplPrefix =
+  "_start:\n"
+
+mainTmplPostfix =
   "popq %rax\n" ++
   "movq $1, %rax\n" ++
   "movq $0, %rbx\n" ++
   "int $0x80\n"
+
+mainTmpl body =
+  mainTmplPrefix ++ body ++ mainTmplPostfix

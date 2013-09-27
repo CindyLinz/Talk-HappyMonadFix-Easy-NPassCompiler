@@ -1,0 +1,33 @@
+function main {
+    function positive {
+        function succ {
+            arg + 1
+        }
+
+        succ(
+            if( arg <= 1 ) {
+                1000
+            } else {
+                positive(arg-1)
+            }
+        )
+    }
+
+    function negative {
+        function succ {
+            arg - 1
+        }
+
+        succ(
+            if( arg <= 1 ) {
+                1000
+            } else {
+                negative(arg-1)
+            }
+        )
+    }
+
+    positive(arg) + negative(arg)
+}
+
+output(main(input(0)))

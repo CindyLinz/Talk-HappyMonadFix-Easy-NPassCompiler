@@ -7,6 +7,7 @@ module Main where
 
 import Control.Monad.State
 import Data.List
+import qualified Data.Map as M
 
 import Lexer
 import ParserState3
@@ -72,8 +73,8 @@ func :: { Int -> Parser ([Char], Int) }
     { \offset -> do
       rec
         funcLabel <- newFunc $2 (offset + funcsSize + 1)
-        currentParserState <- get
-        ((all, allSize, funcsSize), currentFinalParserState) <- lift $ runStateT
+        outerParserState <- get
+        ((all, allSize, funcsSize), innerParserState) <- lift $ runStateT
           ( do
             (funcs, funcsSize) <- $4 offset
             (body, bodySize) <- $5 (offset + funcsSize + 3)
@@ -89,7 +90,11 @@ func :: { Int -> Parser ([Char], Int) }
               , bodySize + funcsSize + 6
               , funcsSize
               )
-          ) (currentParserState {parserFinalFuncTable = parserFuncTable currentFinalParserState})
+          )
+          ( initParserState $ M.union
+            (parserFuncTable innerParserState)
+            (parserFinalFuncTable outerParserState)
+          )
       return (all, allSize)
     }
 

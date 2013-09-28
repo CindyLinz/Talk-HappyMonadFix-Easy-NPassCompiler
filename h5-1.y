@@ -95,6 +95,38 @@ func :: { Int -> Parser ([Char], Int) }
             (parserFuncTable innerParserState)
             (parserFinalFuncTable outerParserState)
           )
+          {- 這邊用不同的組合, 可以製造不同的 namespace shadow 效果:
+           - 上面的例子是, input / output 兩個函數名字不能衝到,
+           - 而其他的名字, 內層可以 shadow 外層
+           -
+           - ( outerParserState
+           -   { parserFinalFuncTable = M.union
+           -     (parserFuncTable innerParserState)
+           -     (parserFinalFuncTable outerParserState)
+           -   }
+           - )
+           - 這一個例子是內層不可以和外層衝到
+           -
+           - ( ParserState
+           -   { parserFuncTable = M.empty
+           -   , parserFinalFuncTable = M.union
+           -     (parserFuncTable innerParserState)
+           -     (parserFinalFuncTable outerParserState)
+           -   }
+           - )
+           - 這一個例子是 input / output 兩個函數也可以 shadow
+           -
+           - ( ParserState
+           -   { parserFuncTable = M.empty
+           -   , parserFinalFuncTable = M.union
+           -     (parserFinalFuncTable outerParserState)
+           -     (parserFuncTable innerParserState)
+           -   }
+           - )
+           - 這一個例子也是 input / output 兩個函數也可以 shadow,
+           - 不一樣的是, 其 shadow 的方式是外層 shadow 內層,
+           - 這種用法有點怪, 可能不會有這種設計, 反正就是個可行的變化
+           -}
       return (all, allSize)
     }
 

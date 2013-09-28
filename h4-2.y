@@ -178,7 +178,7 @@ parseError tks = error $ "parseError: " ++ show tks
 
 main = do
   source <- getContents
-  rec (result, parserState) <- runStateT (cheapParse (lexer source) 0) (initParserState (parserFuncTable parserState))
-  putStr $ fst result
+  rec ((result, _), parserState) <- runStateT (cheapParse (lexer source) 0) (initParserState (parserFuncTable parserState))
+  putStr result
 
 }

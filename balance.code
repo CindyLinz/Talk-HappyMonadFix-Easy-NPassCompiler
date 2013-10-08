@@ -4,13 +4,11 @@ function main {
             arg + 1
         }
 
-        succ(
-            if( arg <= 1 ) {
-                1000
-            } else {
-                positive(arg-1)
-            }
-        )
+        if( arg <= 1 ) {
+            1000
+        } else {
+            succ(positive(arg-1))
+        }
     }
 
     function negative {
@@ -18,13 +16,11 @@ function main {
             arg - 1
         }
 
-        succ(
-            if( arg <= 1 ) {
-                1000
-            } else {
-                negative(arg-1)
-            }
-        )
+        if( arg <= 1 ) {
+            1000
+        } else {
+            succ(negative(arg-1))
+        }
     }
 
     positive(arg) + negative(arg)
